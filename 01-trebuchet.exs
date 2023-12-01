@@ -2,25 +2,47 @@ defmodule Trebuchet do
   def call(input) do
     input
     |> String.split()
-    |> Enum.map(&parse_lines/1)
+    |> Enum.map(&reduce_words_to_numbers/1)
+    |> Enum.map(&parse_line/1)
     |> Enum.map(& List.first(&1) <> List.last(&1))
     |> Enum.map(&String.to_integer/1)
     |> Enum.sum()
   end
 
-  def parse_lines(lines) do
-    String.graphemes(lines)
-    |> Enum.filter(&filter_integers/1)
+  def parse_line(line),
+    do: String.graphemes(line) |> Enum.filter(&filter_integers/1)
+
+  def reduce_words_to_numbers(line),
+    do: Enum.reduce(0..String.length(line), "", fn i, acc ->
+          acc <> String.slice(line, i, 5) |> string_to_number()
+        end)
+
+  def string_to_number("one"), do: "1"
+  def string_to_number("two"), do: "2"
+  def string_to_number("three"), do: "3"
+  def string_to_number("four"), do: "4"
+  def string_to_number("five"), do: "5"
+  def string_to_number("six"), do: "6"
+  def string_to_number("seven"), do: "7"
+  def string_to_number("eight"), do: "8"
+  def string_to_number("nine"), do: "9"
+  def string_to_number(string) do
+    String.replace(
+      string,
+      ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"],
+      &string_to_number/1)
   end
 
-  def filter_integers(char) do
-    case Integer.parse(char) do
-      {int, _} ->
-        int
-      :error ->
-        nil
-    end
-  end
+  def filter_integers("1"), do: 1
+  def filter_integers("2"), do: 2
+  def filter_integers("3"), do: 3
+  def filter_integers("4"), do: 4
+  def filter_integers("5"), do: 5
+  def filter_integers("6"), do: 6
+  def filter_integers("7"), do: 7
+  def filter_integers("8"), do: 8
+  def filter_integers("9"), do: 9
+  def filter_integers(_), do: nil
 end
 
 """
