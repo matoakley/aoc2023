@@ -4,17 +4,46 @@ defmodule CubeConundrum do
   def sum_of_possible_games(input) do
     input
     |> String.split("\n", trim: true)
-    |> Enum.reduce(0, &filter_possible_games/2)
+    |> Enum.reduce([], &parse_game/2)
+    |> Enum.filter(&filter_possible_games/1)
+    |> Enum.reduce(0, fn {id, _sets}, acc -> acc + id end)
   end
 
-  defp filter_possible_games(line, acc) do
-    ["Game " <> id, sets] = String.split(line, ":")
+  def sum_of_power_of_minimum_set(input) do
+    input
+    |> String.split("\n", trim: true)
+    |> Enum.reduce([], &parse_game/2)
+    |> Enum.map(&minimum_set_needed_for_game/1)
+    |> Enum.map(&Map.values/1)
+    |> Enum.map(&Enum.product/1)
+    |> Enum.sum()
+  end
 
-    sets
-    |> String.split(";")
-    |> Enum.map(&parse_set/1)
-    |> Enum.all?(&set_is_possible?/1)
-    |> if(do: acc + String.to_integer(id), else: acc)
+  defp minimum_set_needed_for_game(game) do
+    %{
+      blue: minimum_colour_needed_for_game(game, :blue),
+      green: minimum_colour_needed_for_game(game, :green),
+      red: minimum_colour_needed_for_game(game, :red),
+    }
+  end
+
+  defp minimum_colour_needed_for_game({_id, sets}, colour) do
+    Enum.map(sets, & Map.get(&1, colour, 0)) |> Enum.max()
+  end
+
+  defp filter_possible_games({_id, sets}) do
+    Enum.all?(sets, &set_is_possible?/1)
+  end
+
+  defp parse_game(string, acc) do
+    ["Game " <> id, sets] = String.split(string, ":")
+
+    sets_list =
+      sets
+      |> String.split(";")
+      |> Enum.map(&parse_set/1)
+
+    [{String.to_integer(id), sets_list} | acc]
   end
 
   defp parse_set(string) do
